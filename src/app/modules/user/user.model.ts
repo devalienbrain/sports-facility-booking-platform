@@ -5,6 +5,10 @@ const Role: TRole[] = ["user", "admin"];
 
 const userSchema = new Schema<TUser>(
   {
+    name: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
