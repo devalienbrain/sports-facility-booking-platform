@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Schema, model } from "mongoose";
-import { TRole, TUser } from "./user.interface";
+import { TRole, TUser, UserModel } from "./user.interface";
 import config from "../../config";
 
 const Role: TRole[] = ["user", "admin"];
@@ -27,6 +27,10 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -52,8 +56,8 @@ userSchema.post("save", function (doc, next) {
   next();
 });
 
-userSchema.statics.isUserExistsByCustomId = async function (id: string) {
-  return await User.findOne({ id }).select("+password");
+userSchema.statics.isUserExistsByCustomEmail = async function (email: string) {
+  return await User.findOne({ email }).select("+password");
 };
 
 userSchema.statics.isPasswordMatched = async function (
@@ -72,4 +76,4 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   return passwordChangedTime > jwtIssuedTimestamp;
 };
 
-export const UserModel = model<TUser>("User", userSchema);
+export const User = model<TUser, UserModel>("User", userSchema);
