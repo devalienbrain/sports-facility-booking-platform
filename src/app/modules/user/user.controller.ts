@@ -14,7 +14,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "User is created succesfully",
+      message: "User registered succesfully",
       data: result,
     });
   } catch (err) {
