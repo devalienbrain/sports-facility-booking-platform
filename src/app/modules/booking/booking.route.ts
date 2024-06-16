@@ -3,6 +3,9 @@ import { BookingControllers } from "./booking.controller";
 
 const router = express.Router();
 
-router.post("/create-booking", BookingControllers.createBooking);
+router.post("/", BookingControllers.createBooking);
+router.get("/", BookingControllers.getAllBookings);
+// router.get("/user", FacilityControllers.getAllFacilities);
+router.delete("/:id", BookingControllers.cancelBooking);
 
 export const BookingRoutes = router;
