@@ -3,140 +3,113 @@ import httpStatus from "http-status";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import AppError from "../../errors/AppError";
-import { TLoginUser } from "./auth.interface";
-import { createToken } from "./auth.utils";
+import { TChangePassword, TLoginUser } from "./auth.interface";
 import { User } from "../user/user.model";
+import { createToken } from "./auth.utils";
 
 const loginUser = async (payload: TLoginUser) => {
-  // checking if the user is exist
   const user = await User.isUserExistsByCustomEmail(payload.email);
 
   if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
-  }
-  // checking if the user is already deleted
-
-  const isDeleted = user?.isDeleted;
-
-  if (isDeleted) {
-    throw new AppError(httpStatus.FORBIDDEN, "This user is deleted !");
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
   }
 
-  //checking if the password is correct
+  if (user.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
+  }
 
-  if (!(await User.isPasswordMatched(payload?.password, user?.password)))
-    throw new AppError(httpStatus.FORBIDDEN, "Password do not matched");
+  if (!(await User.isPasswordMatched(payload.password, user.password))) {
+    throw new AppError(httpStatus.FORBIDDEN, "Password does not match!");
+  }
 
-  //create token and sent to the  client
+  const jwtPayload = {
+    email: user.email,
+    role: user.role,
+  };
 
-  // const jwtPayload = {
-  //   userEmail: user.email,
-  //   role: user.role,
-  // };
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string
+  );
 
-  // const accessToken = createToken(
-  //   jwtPayload,
-  //   config.jwt_access_secret as string,
-  //   config.jwt_access_expires_in as string
-  // );
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    config.jwt_refresh_expires_in as string
+  );
 
-  // const refreshToken = createToken(
-  //   jwtPayload,
-  //   config.jwt_refresh_secret as string,
-  //   config.jwt_refresh_expires_in as string
-  // );
-
-  // return {
-  //   accessToken,
-  //   refreshToken,
-  // };
-  return {};
+  return {
+    accessToken,
+    refreshToken,
+  };
 };
 
-// const changePassword = async (
-//   userData: JwtPayload,
-//   payload: { oldPassword: string; newPassword: string }
-// ) => {
-//   // checking if the user is exist
-//   const user = await User.isUserExistsByCustomEmail(userData.);
+const changePassword = async (
+  userData: JwtPayload,
+  payload: TChangePassword
+) => {
+  const user = await User.isUserExistsByCustomEmail(userData.email);
 
-//   if (!user) {
-//     throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
-//   }
-//   // checking if the user is already deleted
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
 
-//   const isDeleted = user?.isDeleted;
+  if (user.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
+  }
 
-//   if (isDeleted) {
-//     throw new AppError(httpStatus.FORBIDDEN, "This user is deleted !");
-//   }
+  if (!(await User.isPasswordMatched(payload.oldPassword, user.password))) {
+    throw new AppError(httpStatus.FORBIDDEN, "Old password does not match!");
+  }
 
-//   //checking if the password is correct
+  const newHashedPassword = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.bcrypt_salt_rounds)
+  );
+  await User.findOneAndUpdate(
+    { _id: user._id },
+    {
+      password: newHashedPassword,
+      needsPasswordChange: false,
+      passwordChangedAt: new Date(),
+    }
+  );
 
-//   if (!(await User.isPasswordMatched(payload.oldPassword, user?.password)))
-//     throw new AppError(httpStatus.FORBIDDEN, "Password do not matched");
+  return null;
+};
 
-//   //hash new password
-//   const newHashedPassword = await bcrypt.hash(
-//     payload.newPassword,
-//     Number(config.bcrypt_salt_rounds)
-//   );
+const refreshToken = async (token: string) => {
+  const decoded = jwt.verify(
+    token,
+    config.jwt_refresh_secret as string
+  ) as JwtPayload;
+  const user = await User.isUserExistsByCustomId(decoded.userId);
 
-//   await User.findOneAndUpdate(
-//     {
-//       id: userData.userId,
-//       role: userData.role,
-//     },
-//     {
-//       password: newHashedPassword,
-//       needsPasswordChange: false,
-//       passwordChangedAt: new Date(),
-//     }
-//   );
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
 
-//   return null;
-// };
+  if (user.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, "User is deleted!");
+  }
 
-// const refreshToken = async (token: string) => {
-//   // checking if the given token is valid
-//   const decoded = jwt.verify(
-//     token,
-//     config.jwt_refresh_secret as string
-//   ) as JwtPayload;
+  const jwtPayload = {
+    email: user.email,
+    role: user.role,
+  };
 
-//   const { userId, iat } = decoded;
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string
+  );
 
-//   // checking if the user is exist
-//   const user = await User.isUserExistsByCustomId(userId);
-
-//   if (!user) {
-//     throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
-//   }
-//   // checking if the user is already deleted
-//   const isDeleted = user?.isDeleted;
-
-//   if (isDeleted) {
-//     throw new AppError(httpStatus.FORBIDDEN, "This user is deleted !");
-//   }
-
-//   const jwtPayload = {
-//     userId: "123",
-//     role: user.role,
-//   };
-
-//   const accessToken = createToken(
-//     jwtPayload,
-//     config.jwt_access_secret as string,
-//     config.jwt_access_expires_in as string
-//   );
-
-//   return {
-//     accessToken,
-//   };
-// };
+  return { accessToken };
+};
 
 export const AuthServices = {
   loginUser,
-  // changePassword,
-  // refreshToken,
+  changePassword,
+  refreshToken,
 };

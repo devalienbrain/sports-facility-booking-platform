@@ -1,57 +1,97 @@
-import httpStatus from "http-status";
-import { NextFunction, Request, Response } from "express";
-import sendResponse from "../../utils/sendResponse";
-import { BookingServices } from "./booking.service";
-import catchAsync from "../../utils/catchAsync";
+import { Request, Response, NextFunction } from "express";
+import { BookingService } from "./booking.service";
 
-const createBooking = async (
+export const checkAvailability = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const bookingData = req.body;
-    console.log(req.body);
-    // const zodParsedData = studentValidationSchema.parse(studentData);
-
-    const result = await BookingServices.createBookingIntoDB(bookingData);
-
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
+    const date = req.query.date
+      ? new Date(req.query.date as string)
+      : new Date();
+    const availableSlots = await BookingService.checkAvailability(
+      date.toISOString().split("T")[0]
+    );
+    res.status(200).json({
       success: true,
-      message: "Booking created succesfully",
-      data: result,
+      statusCode: 200,
+      message: "Availability checked successfully",
+      data: availableSlots,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const getAllBookings = catchAsync(async (req, res) => {
-  const result = await BookingServices.getAllBookingsFromDB(req.query);
+export const createBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const booking = await BookingService.createBooking(req.body);
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Booking created successfully",
+      data: booking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Bookings retrieved successfully",
-    data: result,
-  });
-});
+export const getAllBookings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const bookings = await BookingService.getAllBookings();
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Bookings retrieved successfully",
+      data: bookings,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-const cancelBooking = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await BookingServices.cancelBookingFromDB(id);
+export const getUserBookings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const bookings = await BookingService.getUserBookings(req.params.userId);
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "User bookings retrieved successfully",
+      data: bookings,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Booking cancelled succesfully",
-    data: result,
-  });
-});
-
-export const BookingControllers = {
-  createBooking,
-  getAllBookings,
-  cancelBooking,
+export const cancelBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const booking = await BookingService.cancelBooking(req.params.id);
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Booking canceled successfully",
+      data: booking,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

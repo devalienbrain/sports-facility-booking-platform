@@ -1,5 +1,4 @@
 import express from "express";
-import auth from "../../middlewares/auth";
 import validateRequest from "../../middlewares/validateRequest";
 import { AuthValidation } from "./auth.validation";
 import { AuthControllers } from "./auth.controller";
@@ -12,10 +11,16 @@ router.post(
   AuthControllers.loginUser
 );
 
-// router.post(
-//   "/refresh-token",
-//   validateRequest(AuthValidation.refreshTokenValidationSchema),
-//   AuthControllers.refreshToken
-// );
+router.post(
+  "/change-password",
+  validateRequest(AuthValidation.changePasswordValidationSchema),
+  AuthControllers.changePassword
+);
+
+router.post(
+  "/refresh-token",
+  validateRequest(AuthValidation.refreshTokenValidationSchema),
+  AuthControllers.refreshToken
+);
 
 export const AuthRoutes = router;

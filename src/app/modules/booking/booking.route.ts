@@ -1,11 +1,16 @@
-import express from "express";
-import { BookingControllers } from "./booking.controller";
+import { Router } from "express";
+import {
+  cancelBooking,
+  createBooking,
+  getAllBookings,
+  getUserBookings,
+} from "./booking.controller";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", BookingControllers.createBooking);
-router.get("/", BookingControllers.getAllBookings);
-// router.get("/user", FacilityControllers.getAllFacilities);
-router.delete("/:id", BookingControllers.cancelBooking);
+router.post("/", createBooking);
+router.get("/", getAllBookings);
+router.get("/:userId", getUserBookings);
+router.delete("/:id", cancelBooking);
 
 export const BookingRoutes = router;

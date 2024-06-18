@@ -1,72 +1,77 @@
-import httpStatus from "http-status";
-import { NextFunction, Request, Response } from "express";
-import sendResponse from "../../utils/sendResponse";
-import { FacilityServices } from "./facility.service";
-import { FacilityModel } from "./facility.model";
-import QueryBuilder from "../../builder/QueryBuilder";
-import catchAsync from "../../utils/catchAsync";
+import { Request, Response, NextFunction } from "express";
+import { FacilityService } from "./facility.service";
 
-const createFacility = async (
+export const createFacility = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const facilityData = req.body;
-    // console.log(req.body);
-    // const zodParsedData = studentValidationSchema.parse(studentData);
-
-    const result = await FacilityServices.createFacilityIntoDB(facilityData);
-
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
+    const facility = await FacilityService.createFacility(req.body);
+    res.status(200).json({
       success: true,
-      message: "Facility added succesfully",
-      data: result,
+      statusCode: 200,
+      message: "Facility added successfully",
+      data: facility,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const updateAFacility = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await FacilityServices.updateAFacilityIntoDB(id, req.body);
+export const updateFacility = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const facility = await FacilityService.updateFacility(
+      req.params.id,
+      req.body
+    );
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Facility updated successfully",
+      data: facility,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Facility updated succesfully",
-    data: result,
-  });
-});
+export const deleteFacility = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const facility = await FacilityService.deleteFacility(req.params.id);
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Facility deleted successfully",
+      data: facility,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-const deleteAFacility = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await FacilityServices.deleteFacilityFromDB(id);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Facility deleted succesfully",
-    data: result,
-  });
-});
-
-const getAllFacilities = catchAsync(async (req, res) => {
-  const result = await FacilityServices.getAllFacilitiessFromDB(req.query);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Facilities retrieved successfully",
-    data: result,
-  });
-});
-
-export const FacilityControllers = {
-  createFacility,
-  updateAFacility,
-  deleteAFacility,
-  getAllFacilities,
+export const getAllFacilities = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const facilities = await FacilityService.getAllFacilities();
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: "Facilities retrieved successfully",
+      data: facilities,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

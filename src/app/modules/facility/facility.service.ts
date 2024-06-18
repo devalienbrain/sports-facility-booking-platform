@@ -1,71 +1,38 @@
-import httpStatus from "http-status";
-import AppError from "../../errors/AppError";
 import { TFacility } from "./facility.interface";
-import { FacilityModel } from "./facility.model";
+import { Facility } from "./facility.model";
 
-const createFacilityIntoDB = async (facilityData: TFacility) => {
-  // create a facility
-  const newFacility = await FacilityModel.create(facilityData);
-  return newFacility;
+const createFacility = async (
+  payload: Partial<TFacility>
+): Promise<TFacility> => {
+  const facility = new Facility(payload);
+  await facility.save();
+  return facility;
 };
 
-const updateAFacilityIntoDB = async (
+const updateFacility = async (
   id: string,
   payload: Partial<TFacility>
-) => {
-  // const session = await mongoose.startSession();
-
-  try {
-    // session.startTransaction();
-
-    //step1: basic course info update
-    const updatedBasicCourseInfo = await FacilityModel.findByIdAndUpdate(id, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedBasicCourseInfo) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "Failed to update the Facility"
-      );
-    }
-  } catch (err) {
-    console.log(err);
-    throw new AppError(httpStatus.BAD_REQUEST, "Failed to update the Facility");
-  }
+): Promise<TFacility | null> => {
+  const facility = await Facility.findByIdAndUpdate(id, payload, { new: true });
+  return facility;
 };
 
-const deleteFacilityFromDB = async (id: string) => {
-  const result = await FacilityModel.findByIdAndUpdate(
+const deleteFacility = async (id: string): Promise<TFacility | null> => {
+  const facility = await Facility.findByIdAndUpdate(
     id,
     { isDeleted: true },
-    {
-      new: true,
-    }
+    { new: true }
   );
-  return result;
+  return facility;
 };
 
-const getAllFacilitiessFromDB = async (query: Record<string, unknown>) => {
-  // const courseQuery = new QueryBuilder(
-  //   FacilityModel.find(),
-  //   // .populate('preRequisiteCourses.course'),
-  //   query
-  // )
-  //   .search(CourseSearchableFields)
-  //   .filter()
-  //   .sort()
-  //   .paginate()
-  //   .fields();
-
-  const result = await FacilityModel.find();
-  return result;
+const getAllFacilities = async (): Promise<TFacility[]> => {
+  return await Facility.find({ isDeleted: false });
 };
 
-export const FacilityServices = {
-  createFacilityIntoDB,
-  updateAFacilityIntoDB,
-  deleteFacilityFromDB,
-  getAllFacilitiessFromDB,
+export const FacilityService = {
+  createFacility,
+  updateFacility,
+  deleteFacility,
+  getAllFacilities,
 };

@@ -1,11 +1,16 @@
-import express from "express";
-import { FacilityControllers } from "./facility.controller";
+import { Router } from "express";
+import {
+  createFacility,
+  deleteFacility,
+  getAllFacilities,
+  updateFacility,
+} from "./facility.controller";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", FacilityControllers.createFacility);
-router.put("/:id", FacilityControllers.updateAFacility);
-router.delete("/:id", FacilityControllers.deleteAFacility);
-router.get("/", FacilityControllers.getAllFacilities);
+router.post("/", createFacility);
+router.put("/:id", updateFacility);
+router.delete("/:id", deleteFacility);
+router.get("/", getAllFacilities);
 
 export const FacilityRoutes = router;

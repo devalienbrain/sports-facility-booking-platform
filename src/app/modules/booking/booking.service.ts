@@ -1,41 +1,85 @@
+import { Facility } from "../facility/facility.model";
 import { TBooking } from "./booking.interface";
-import { BookingModel } from "./booking.model";
+import { Booking } from "./booking.model";
 
-const createBookingIntoDB = async (bookingData: TBooking) => {
-  // create a booking
-  const newBooking = await BookingModel.create(bookingData);
-  return newBooking;
+const checkAvailability = async (date: string) => {
+  const bookings = await Booking.find({
+    date: new Date(date),
+    isBooked: "confirmed",
+  });
+  // Assuming full day availability from 8 AM to 10 PM
+  const timeSlots = [
+    { startTime: "08:00", endTime: "10:00" },
+    { startTime: "10:00", endTime: "12:00" },
+    { startTime: "12:00", endTime: "14:00" },
+    { startTime: "14:00", endTime: "16:00" },
+    { startTime: "16:00", endTime: "18:00" },
+    { startTime: "18:00", endTime: "20:00" },
+    { startTime: "20:00", endTime: "22:00" },
+  ];
+
+  bookings.forEach((booking) => {
+    timeSlots.forEach((slot) => {
+      if (
+        (new Date(`1970-01-01T${slot.startTime}:00.000Z`) <=
+          booking.startTime &&
+          new Date(`1970-01-01T${slot.endTime}:00.000Z`) > booking.startTime) ||
+        (new Date(`1970-01-01T${slot.startTime}:00.000Z`) < booking.endTime &&
+          new Date(`1970-01-01T${slot.endTime}:00.000Z`) >= booking.endTime)
+      ) {
+        slot.startTime = "";
+        slot.endTime = "";
+      }
+    });
+  });
+
+  return timeSlots.filter((slot) => slot.startTime && slot.endTime);
 };
 
-const getAllBookingsFromDB = async (query: Record<string, unknown>) => {
-  // const courseQuery = new QueryBuilder(
-  //   FacilityModel.find(),
-  //   // .populate('preRequisiteCourses.course'),
-  //   query
-  // )
-  //   .search(CourseSearchableFields)
-  //   .filter()
-  //   .sort()
-  //   .paginate()
-  //   .fields();
+const createBooking = async (payload: Partial<TBooking>): Promise<TBooking> => {
+  const { startTime, endTime, facility } = payload;
 
-  const result = await BookingModel.find();
-  return result;
+  const facilityDoc = await Facility.findById(facility);
+  if (!facilityDoc) {
+    throw new Error("Facility not found");
+  }
+
+  const duration =
+    (new Date(endTime ?? Date.now()).getTime() -
+      new Date(startTime ?? Date.now()).getTime()) /
+    (1000 * 60 * 60);
+  const payableAmount = duration * facilityDoc.pricePerHour;
+
+  const booking = new Booking({
+    ...payload,
+    payableAmount,
+    isBooked: "confirmed",
+  });
+
+  await booking.save();
+  return booking;
 };
 
-const cancelBookingFromDB = async (id: string) => {
-  const result = await BookingModel.findByIdAndUpdate(
+const getAllBookings = async (): Promise<TBooking[]> => {
+  return await Booking.find().populate("user facility");
+};
+
+const getUserBookings = async (userId: string): Promise<TBooking[]> => {
+  return await Booking.find({ user: userId }).populate("facility");
+};
+
+const cancelBooking = async (id: string): Promise<TBooking | null> => {
+  return await Booking.findByIdAndUpdate(
     id,
-    { isBooked: false },
-    {
-      new: true,
-    }
-  );
-  return result;
+    { isBooked: "canceled" },
+    { new: true }
+  ).populate("user facility");
 };
 
-export const BookingServices = {
-  createBookingIntoDB,
-  getAllBookingsFromDB,
-  cancelBookingFromDB,
+export const BookingService = {
+  checkAvailability,
+  createBooking,
+  getAllBookings,
+  getUserBookings,
+  cancelBooking,
 };

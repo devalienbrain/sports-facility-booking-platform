@@ -3,6 +3,7 @@ import { Model } from "mongoose";
 export type TRole = "user" | "admin";
 
 export interface TUser {
+  _id: string;
   name: string;
   email: string;
   password: string;
@@ -11,10 +12,9 @@ export interface TUser {
   address: string;
   isDeleted: boolean;
 }
+
 export interface UserModel extends Model<TUser> {
-  //instance methods for checking if the user exist
-  isUserExistsByCustomEmail(email: string): Promise<TUser>;
-  //instance methods for checking if passwords are matched
+  isUserExistsByCustomEmail(email: string): Promise<TUser | null>;
   isPasswordMatched(
     plainTextPassword: string,
     hashedPassword: string
@@ -23,4 +23,5 @@ export interface UserModel extends Model<TUser> {
     passwordChangedTimestamp: Date,
     jwtIssuedTimestamp: number
   ): boolean;
+  isUserExistsByCustomId(userId: string): Promise<TUser | null>;
 }

@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { Schema, model } from "mongoose";
-import { TRole, TUser, UserModel } from "./user.interface";
 import config from "../../config";
+import { TRole, TUser, UserModel } from "./user.interface";
 
 const Role: TRole[] = ["user", "admin"];
 
@@ -19,6 +19,7 @@ const userSchema = new Schema<TUser>(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     phone: {
       type: String,
@@ -44,26 +45,23 @@ const userSchema = new Schema<TUser>(
 );
 
 userSchema.pre("save", async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this; // doc
-  // hashing password and save into DB
-
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds)
-  );
-
+  const user = this;
+  if (user.isModified("password")) {
+    user.password = await bcrypt.hash(
+      user.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
   next();
 });
 
-// set '' after saving password
 userSchema.post("save", function (doc, next) {
   doc.password = "";
   next();
 });
 
 userSchema.statics.isUserExistsByCustomEmail = async function (email: string) {
-  return await User.findOne({ email }).select("+password");
+  return await this.findOne({ email }).select("+password");
 };
 
 userSchema.statics.isPasswordMatched = async function (
@@ -80,6 +78,10 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   const passwordChangedTime =
     new Date(passwordChangedTimestamp).getTime() / 1000;
   return passwordChangedTime > jwtIssuedTimestamp;
+};
+
+userSchema.statics.isUserExistsByCustomId = async function (userId: string) {
+  return await this.findById(userId).select("+password");
 };
 
 export const User = model<TUser, UserModel>("User", userSchema);
