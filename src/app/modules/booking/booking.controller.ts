@@ -1,28 +1,43 @@
 import { Request, Response, NextFunction } from "express";
 import { BookingService } from "./booking.service";
+import catchAsync from "../../utils/catchAsync";
 
-export const checkAvailability = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const date = req.query.date
-      ? new Date(req.query.date as string)
-      : new Date();
-    const availableSlots = await BookingService.checkAvailability(
-      date.toISOString().split("T")[0]
-    );
-    res.status(200).json({
-      success: true,
-      statusCode: 200,
-      message: "Availability checked successfully",
-      data: availableSlots,
-    });
-  } catch (error) {
-    next(error);
+export const checkAvailability = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const dateString = req.query.date as string;
+      let date: Date;
+
+      if (dateString) {
+        // Extract day, month, and year
+        const [day, month, year] = dateString.split("-").map(Number);
+        // Format to YYYY-MM-DD
+        const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        date = new Date(formattedDate);
+      } else {
+        date = new Date();
+      }
+
+      console.log({ date });
+
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date format. Please use DD-MM-YYYY format.");
+      }
+
+      const availableSlots = await BookingService.checkAvailability(
+        date.toISOString().split("T")[0]
+      );
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: "Availability checked successfully",
+        data: availableSlots,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-};
+);
 
 export const createBooking = async (
   req: Request,
