@@ -13,7 +13,11 @@ const auth = (...requiredRoles: TRole[]) => {
 
     // checking if the token is missing
     if (!token) {
-      throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized!");
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        success: false,
+        statusCode: 401,
+        message: "You have no access to this route",
+      });
     }
 
     // checking if the given token is valid
@@ -39,10 +43,11 @@ const auth = (...requiredRoles: TRole[]) => {
     }
 
     if (requiredRoles && !requiredRoles.includes(role)) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        "You are not authorized  hi!"
-      );
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        success: false,
+        statusCode: 401,
+        message: "You have no access to this route",
+      });
     }
 
     req.user = decoded as JwtPayload;
