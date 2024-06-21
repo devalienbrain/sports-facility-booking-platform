@@ -66,6 +66,14 @@ export const getAllBookings = async (
 ) => {
   try {
     const bookings = await BookingService.getAllBookings();
+    if (bookings.length === 0) {
+      return res.status(404).json({
+        success: false,
+        statusCode: 404,
+        message: "No Data Found",
+        data: [],
+      });
+    }
     res.status(200).json({
       success: true,
       statusCode: 200,
@@ -85,6 +93,14 @@ export const getUserBookings = async (
   try {
     const { userId } = req.user!;
     const bookings = await BookingService.getUserBookings(userId);
+    if (bookings.length === 0) {
+      return res.status(404).json({
+        success: false,
+        statusCode: 404,
+        message: "No Data Found",
+        data: [],
+      });
+    }
     res.status(200).json({
       success: true,
       statusCode: 200,

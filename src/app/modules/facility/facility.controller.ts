@@ -65,6 +65,14 @@ export const getAllFacilities = async (
 ) => {
   try {
     const facilities = await FacilityService.getAllFacilities();
+    if (facilities.length === 0) {
+      return res.status(404).json({
+        success: false,
+        statusCode: 404,
+        message: "No Data Found",
+        data: [],
+      });
+    }
     res.status(200).json({
       success: true,
       statusCode: 200,
