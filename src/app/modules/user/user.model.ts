@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import bcrypt from "bcrypt";
 import { Schema, model } from "mongoose";
 import config from "../../config";
@@ -69,19 +70,6 @@ userSchema.statics.isPasswordMatched = async function (
   hashedPassword
 ) {
   return await bcrypt.compare(plainTextPassword, hashedPassword);
-};
-
-userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
-  passwordChangedTimestamp: Date,
-  jwtIssuedTimestamp: number
-) {
-  const passwordChangedTime =
-    new Date(passwordChangedTimestamp).getTime() / 1000;
-  return passwordChangedTime > jwtIssuedTimestamp;
-};
-
-userSchema.statics.isUserExistsByCustomId = async function (userId: string) {
-  return await this.findById(userId).select("+password");
 };
 
 export const User = model<TUser, UserModel>("User", userSchema);

@@ -5,10 +5,11 @@ import {
   getAllFacilities,
   updateFacility,
 } from "./facility.controller";
+import auth from "../../middlewares/auth";
 
 const router = Router();
 
-router.post("/", createFacility);
+router.post("/", auth("admin"), createFacility);
 router.put("/:id", updateFacility);
 router.delete("/:id", deleteFacility);
 router.get("/", getAllFacilities);
