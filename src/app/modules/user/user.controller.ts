@@ -1,7 +1,5 @@
-import httpStatus from "http-status";
 import { NextFunction, Request, Response } from "express";
 import { UserServices } from "./user.service";
-import sendResponse from "../../utils/sendResponse";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -11,8 +9,8 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
     const result = await UserServices.createUserIntoDB(userData);
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
+    res.status(200).json({
+      statusCode: 200,
       success: true,
       message: "User registered succesfully",
       data: result,

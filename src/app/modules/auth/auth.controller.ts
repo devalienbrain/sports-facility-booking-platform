@@ -4,29 +4,20 @@ import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 
 const loginUser = catchAsync(async (req, res) => {
+  // console.log(req.body);
   const result = await AuthServices.loginUser(req.body);
-  const { refreshToken, accessToken } = result;
-
+  const { accessToken, refreshToken, user } = result;
+  console.log({ accessToken });
+  const { _id, name, email, role, phone, address } = user;
   res.cookie("refreshToken", refreshToken, {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
   });
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
+  res.status(200).json({
+    statusCode: 200,
     success: true,
-    message: "User logged in successfully!",
-    data: { accessToken },
-  });
-});
-
-const changePassword = catchAsync(async (req, res) => {
-  const result = await AuthServices.changePassword(req.user, req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Password updated successfully!",
-    data: result,
+    message: "User logged in Successfully!",
+    data: { _id, name, email, role, phone, address },
   });
 });
 
@@ -42,6 +33,5 @@ const refreshToken = catchAsync(async (req, res) => {
 
 export const AuthControllers = {
   loginUser,
-  changePassword,
   refreshToken,
 };

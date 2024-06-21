@@ -1,6 +1,6 @@
 import { ObjectId } from "mongoose";
 import { Facility } from "../facility/facility.model";
-import { User } from "../user/user.model";
+
 import { TBooking } from "./booking.interface";
 import { Booking } from "./booking.model";
 
@@ -39,8 +39,8 @@ const checkAvailability = async (date: string) => {
 };
 
 const createBooking = async (payload: Partial<TBooking>): Promise<TBooking> => {
-  console.log(payload);
-  const { startTime, endTime, facility, user } = payload;
+  // console.log(payload);
+  const { startTime, endTime, facility } = payload;
 
   // Validate and convert startTime and endTime to Date objects
   const startTimeDate = new Date(`${payload.date}T${startTime}:00.000Z`);
@@ -76,7 +76,7 @@ const createBooking = async (payload: Partial<TBooking>): Promise<TBooking> => {
 };
 
 const getAllBookings = async (): Promise<TBooking[]> => {
-  return await Booking.find().populate("user facility");
+  return await Booking.find().populate("user").populate("facility");
 };
 
 const getUserBookings = async (userId: ObjectId): Promise<TBooking[]> => {

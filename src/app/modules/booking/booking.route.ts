@@ -10,8 +10,8 @@ import auth from "../../middlewares/auth";
 const router = Router();
 
 router.post("/", auth("user"), createBooking);
-router.get("/", getAllBookings);
+router.get("/", auth("admin"), getAllBookings);
 router.get("/user", auth("user"), getUserBookings);
-router.delete("/:id", cancelBooking);
+router.delete("/:id", auth("user"), cancelBooking);
 
 export const BookingRoutes = router;
