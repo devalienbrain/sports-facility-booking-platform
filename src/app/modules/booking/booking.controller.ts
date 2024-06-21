@@ -68,7 +68,8 @@ export const getUserBookings = async (
   next: NextFunction
 ) => {
   try {
-    const bookings = await BookingService.getUserBookings(req.params.userId);
+    const { userId } = req.user!;
+    const bookings = await BookingService.getUserBookings(userId);
     res.status(200).json({
       success: true,
       statusCode: 200,

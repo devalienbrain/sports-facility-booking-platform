@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/", auth("user"), createBooking);
 router.get("/", getAllBookings);
-router.get("/:userId", getUserBookings);
+router.get("/user", auth("user"), getUserBookings);
 router.delete("/:id", cancelBooking);
 
 export const BookingRoutes = router;

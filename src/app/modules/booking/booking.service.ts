@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { Facility } from "../facility/facility.model";
 import { User } from "../user/user.model";
 import { TBooking } from "./booking.interface";
@@ -78,7 +79,7 @@ const getAllBookings = async (): Promise<TBooking[]> => {
   return await Booking.find().populate("user facility");
 };
 
-const getUserBookings = async (userId: string): Promise<TBooking[]> => {
+const getUserBookings = async (userId: ObjectId): Promise<TBooking[]> => {
   return await Booking.find({ user: userId }).populate("facility");
 };
 
