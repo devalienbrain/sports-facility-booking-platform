@@ -30,7 +30,9 @@ export const createBooking = async (
   next: NextFunction
 ) => {
   try {
-    const booking = await BookingService.createBooking(req.body);
+    const { userId } = req.user!;
+    const bookingData = { ...req.body, user: userId };
+    const booking = await BookingService.createBooking(bookingData);
     res.status(200).json({
       success: true,
       statusCode: 200,

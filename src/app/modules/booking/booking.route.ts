@@ -5,10 +5,11 @@ import {
   getAllBookings,
   getUserBookings,
 } from "./booking.controller";
+import auth from "../../middlewares/auth";
 
 const router = Router();
 
-router.post("/", createBooking);
+router.post("/", auth("user"), createBooking);
 router.get("/", getAllBookings);
 router.get("/:userId", getUserBookings);
 router.delete("/:id", cancelBooking);

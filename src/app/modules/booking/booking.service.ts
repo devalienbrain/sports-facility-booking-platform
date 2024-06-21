@@ -1,4 +1,5 @@
 import { Facility } from "../facility/facility.model";
+import { User } from "../user/user.model";
 import { TBooking } from "./booking.interface";
 import { Booking } from "./booking.model";
 
@@ -37,25 +38,38 @@ const checkAvailability = async (date: string) => {
 };
 
 const createBooking = async (payload: Partial<TBooking>): Promise<TBooking> => {
-  const { startTime, endTime, facility } = payload;
+  console.log(payload);
+  const { startTime, endTime, facility, user } = payload;
 
+  // Validate and convert startTime and endTime to Date objects
+  const startTimeDate = new Date(`${payload.date}T${startTime}:00.000Z`);
+  const endTimeDate = new Date(`${payload.date}T${endTime}:00.000Z`);
+
+  if (isNaN(startTimeDate.getTime()) || isNaN(endTimeDate.getTime())) {
+    throw new Error("Invalid start time or end time");
+  }
+
+  // Fetch the facility document
   const facilityDoc = await Facility.findById(facility);
   if (!facilityDoc) {
     throw new Error("Facility not found");
   }
 
+  // Calculate the payable amount
   const duration =
-    (new Date(endTime ?? Date.now()).getTime() -
-      new Date(startTime ?? Date.now()).getTime()) /
-    (1000 * 60 * 60);
+    (endTimeDate.getTime() - startTimeDate.getTime()) / (1000 * 60 * 60);
   const payableAmount = duration * facilityDoc.pricePerHour;
 
+  // Create the booking document
   const booking = new Booking({
     ...payload,
+    startTime: startTimeDate,
+    endTime: endTimeDate,
     payableAmount,
     isBooked: "confirmed",
   });
 
+  // Save the booking document
   await booking.save();
   return booking;
 };
