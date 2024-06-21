@@ -12,5 +12,13 @@ app.get("/", (req: Request, res: Response) => {
     "Hello From Dev Alien Brain's Sports Facility Booking Platform World!"
   );
 });
+// handling route not found error
+app.all("*", (req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    statusCode: 404,
+    message: "Not Found",
+  });
+});
 
 export default app;
