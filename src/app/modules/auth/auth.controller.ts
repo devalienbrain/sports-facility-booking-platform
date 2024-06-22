@@ -7,7 +7,7 @@ const loginUser = catchAsync(async (req, res) => {
   // console.log(req.body);
   const result = await AuthServices.loginUser(req.body);
   const { accessToken, refreshToken, user } = result;
-  console.log({ accessToken });
+  // console.log({ accessToken });
   const { _id, name, email, role, phone, address } = user;
   res.cookie("refreshToken", refreshToken, {
     secure: process.env.NODE_ENV === "production",
@@ -16,6 +16,7 @@ const loginUser = catchAsync(async (req, res) => {
   res.status(200).json({
     statusCode: 200,
     success: true,
+    token: `Bearer ${accessToken}`,
     message: "User logged in Successfully!",
     data: { _id, name, email, role, phone, address },
   });
