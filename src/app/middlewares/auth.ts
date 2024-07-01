@@ -9,8 +9,14 @@ import catchAsync from "../utils/catchAsync";
 
 const auth = (...requiredRoles: TRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
-
+    const bearerToken = req.headers.authorization;
+    console.log({ bearerToken });
+    const splitToken = bearerToken?.split(" ");
+    
+    console.log({ splitToken });
+    const token = splitToken ? splitToken[1] : null;
+    console.log({ token });
+    
     // checking if the token is missing
     if (!token) {
       return res.status(httpStatus.UNAUTHORIZED).json({
